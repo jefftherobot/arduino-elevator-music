@@ -16,11 +16,13 @@
 Adafruit_VS1053_FilePlayer musicPlayer = Adafruit_VS1053_FilePlayer(SHIELD_RESET, SHIELD_CS, SHIELD_DCS, DREQ, CARDCS);
 unsigned int numMP3files = 0;
 char fileName[20];    //an array to hold the filename
-const int buttonPin = 2;
-int buttonState = 0;
+const int pinSwitch = 2;
+int stateOfSwitch = 0;
+int playedOnce = 0;
+long fileToPlay;
   
 void setup() {
-  pinMode(buttonPin, INPUT);
+  pinMode(pinSwitch, INPUT);
 	Serial.begin(9600);
 	Serial.println("Elevator Music");
 
@@ -40,27 +42,32 @@ void setup() {
 	// If DREQ is on an interrupt pin (on uno, #2 or #3) we can do background audio playing
 	musicPlayer.useInterrupt(VS1053_FILEPLAYER_PIN_INT);  // DREQ int
 	//playRandFile();
+  randomSeed(analogRead(0));
 }
 
 void loop() {
-	buttonState = digitalRead(buttonPin);
-  if (buttonState == HIGH) {
-    // Button pressed
-    playRandFile();
+	stateOfSwitch = digitalRead(pinSwitch);
+  //serial.println(stateOfSwitch);
+  if (stateOfSwitch == HIGH) {
+    // Door closed and triggered press
+    if (!musicPlayer.playingMusic && !playedOnce){
+      playedOnce=1;
+      playerControl('r');
+    }
   } else {
-    // Button unpressed
+    // Door has opened and triggered button unpressed
+    playedOnce=0;
+    if (musicPlayer.playingMusic){
+      musicPlayer.stopPlaying();
+    }
   }
-	if (Serial.available()) {
-	 	char c = Serial.read();
-		controlMusic(c);
-	}
-
+  
 	delay(100);
 }
 
 /// Music controls
 
-void controlMusic(char c){
+void playerControl(char c){
 	
 	if (c == 's') {
 		Serial.println("Stopped");
@@ -68,7 +75,6 @@ void controlMusic(char c){
 	}
 
   if (c == 'r') {
-    musicPlayer.stopPlaying();
     playRandFile();
   }
 
@@ -84,7 +90,6 @@ void controlMusic(char c){
 }
 
 void playRandFile(){
-  int fileToPlay;
   int totalFiles = numMP3files + 1;
   fileToPlay = random(1, totalFiles);
   sprintf(fileName, "%d.mp3", fileToPlay);  //turn the number into a string and add extension
