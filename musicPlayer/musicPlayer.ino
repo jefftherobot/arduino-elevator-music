@@ -23,6 +23,7 @@ long fileToPlay;
   
 void setup() {
   pinMode(pinSwitch, INPUT);
+  pinMode(12, OUTPUT);
 	Serial.begin(9600);
 	Serial.println("Elevator Music");
 
@@ -47,16 +48,18 @@ void setup() {
 
 void loop() {
 	stateOfSwitch = digitalRead(pinSwitch);
-  //serial.println(stateOfSwitch);
+  //Serial.println(stateOfSwitch);
   if (stateOfSwitch == HIGH) {
     // Door closed and triggered press
     if (!musicPlayer.playingMusic && !playedOnce){
       playedOnce=1;
+      digitalWrite(12, HIGH);
       playerControl('r');
     }
   } else {
     // Door has opened and triggered button unpressed
     playedOnce=0;
+    digitalWrite(12, LOW);
     if (musicPlayer.playingMusic){
       musicPlayer.stopPlaying();
     }
