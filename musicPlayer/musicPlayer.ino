@@ -94,6 +94,7 @@ void playerControl(char c){
 
 void playRandFile(){
   int totalFiles = numMP3files + 1;
+  Serial.println(totalFiles);
   fileToPlay = random(1, totalFiles);
   sprintf(fileName, "%d.mp3", fileToPlay);  //turn the number into a string and add extension
   Serial.println( fileName);
@@ -121,8 +122,29 @@ void printDirectory(File dir, int numTabs) {
 			Serial.print("\t\t");
 			Serial.println(entry.size(), DEC);
 		}
+
+    if ( isFnMusic(entry.name()) ) { // Here is the magic
+      numMP3files++;
+    }
 		entry.close();
-		numMP3files++;
 	}
 	
+}
+
+bool isFnMusic(char* filename) {
+  int8_t len = strlen(filename);
+  bool result;
+  if (  strstr(strlwr(filename + (len - 4)), ".mp3")
+     || strstr(strlwr(filename + (len - 4)), ".aac")
+     || strstr(strlwr(filename + (len - 4)), ".wma")
+     || strstr(strlwr(filename + (len - 4)), ".wav")
+     || strstr(strlwr(filename + (len - 4)), ".fla")
+     || strstr(strlwr(filename + (len - 4)), ".mid")
+     // and anything else you want
+    ) {
+    result = true;
+  } else {
+    result = false;
+  }
+  return result;
 }
